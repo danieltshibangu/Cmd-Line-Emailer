@@ -9,98 +9,134 @@
 '''
 
 from selenium import webdriver 
-import sys
-from selenium.common.exceptions import NoSuchElementException
-import time
+import sys, time
+
+MY_EMAIL = '*****'
+PASSWORD = '*****'
+PATH = '/Users/danieltshibangu/Desktop/geckodriver'
+browser = webdriver.Firefox(executable_path=PATH)
+# open to my email path 
+browser.get('https://login.yahoo.com/')
+
+def found_tag(wd_obj):
+    return 'Found <%s> element with that id name!' % (wd_obj.tag_name)
 
 # TODO: create a function to get info from the command line 
 
 if len(sys.argv) > 1: 
-    address = ' '.join( sys.argv[1])
-    message = ' '.join( sys.argv[2:])
+    target_address = ''.join( sys.argv[1])
+    subject = ''.join(sys.argv[2])
+    message = ' '.join( sys.argv[3:])
+    complete_msg = "Hi\n\n" + message + "\n\nKind Regards"
 else:
     print("INVALID ENTRY." +\
-    "Provide a target email and an address.")
+          "Provide a target email and an address.")
+
+
 
 # TODO: use selenium to get to personal email 
-
-MY_EMAIL = '*****'
-PATH = '/Users/danieltshibangu/Desktop/geckodriver'
-browser = webdriver.Firefox(executable_path=PATH)
-
-# open to my email path 
-browser.get('https://login.yahoo.com/')
 
 try:
     # target the class that lets me enter the input 
     login_id = browser.find_element_by_id('login-username')
-    if login_id.is_displayed():
-        print('Found <%s> element with that id name!' % (login_id.tag_name))
+    # this sends data to the login box we have found 
+    login_id.send_keys(MY_EMAIL)
 except: 
     print( "Was not able to find that id name")
-
-# once we find the tag we can modify it
-# webElement onjects have a built in method to send it data
-# this sends data to the login box we have found 
-login_id.send_keys(MY_EMAIL)
 
 # find the next element that will confirm the email message 
 # this is the button to comfirm email and take you to password screen
 try: 
     confirm_button = browser.find_element_by_id('login-signin')
-    if confirm_button.is_displayed():
-        print( 'Found <%s> element with that id name!' % (confirm_button.tag_name))
+    #click on the button to go to the password screen
+    confirm_button.click()
 except: 
     print( "Couldn't find that button.")
 
-#click on the button to go to the password screen
-confirm_button.click()
+# prompt message
 print( "CONFIRMING EMAIL . . . ")
 
-# a special case if the email is not correct or ws entered incorrectly
+
+
+# TODO: add a special case if the username is wrong
 try: 
     entry_error = browser.find_element_by_id('username-error')
-    if entry_error.is_displayed():
-        print( "Email address denied. Enter a correct email address.")
-    else: 
-        print( 'EMAIL CONFIRMED!')
+    print( 'EMAIL CONFIRMED!')
 except: 
     print( "Error message wasn't displayed.")
-time.sleep(10)
+time.sleep(5)
+
+
+# prompt message to confirm password
+print( "CONFIRMING PASSWORD . . . ")
 
 
 
 # TODO: Enter password for given email address using selenium 
-PASSWORD = '*****!'
-
 try: 
     password_login = browser.find_element_by_id('login-passwd')
-    if password_login.is_displayed():
-        print( 'Found <%s> element with that id name!' % (password_login.tag_name))
-        password_login.send_keys(PASSWORD)
+    password_login.send_keys(PASSWORD)
 except:
     print("Was not able to find tag with that id!")
-
-
-
-
 
 # find the next element that will confirm the email message 
 # this button will NOW take you into your email
 try: 
     confirm_button = browser.find_element_by_id('login-signin')
-    if confirm_button.is_displayed():
-        print( 'Found <%s> element with that id name!' % (confirm_button.tag_name))
+    #click on the button to go to the password screen
+    confirm_button.click()
 except: 
     print( "Couldn't find that button.")
 
-#click on the button to go to the password screen
-confirm_button.click()
-print( "CONFIRMING PASSWORD . . . ")
 
 
+# TODO: scan the page to get into the mail 
+try:
+    get_mail_link = browser.find_element_by_id('ybarMailLink')
+    #click on the link to get into the mailbox 
+    get_mail_link.click()
+except:
+    print( "Couldn't find link to mailbox.")
+
+# click compose to start creating message 
+try: 
+    time.sleep(3)
+    compose_message = browser.find_element_by_link_text('Compose')
+    compose_message.click() 
+except:
+    print( "That class name was not found.")
 
 
+# TODO: now send the email to the specified email address 
+
+# first fill in the 'to' field 
+try: 
+    to_field = browser.find_element_by_id("message-to-field")
+    to_field.send_keys(target_address)
+except:
+    print("The id name was not found!")
 
 
+# second fill out the 'subject' field 
+try: 
+    subject_field = browser.find_element_by_xpath("//input[@placeholder='Subject']") 
+    subject_field.send_keys(subject)
+except:
+    print("The id name was not found!")
 
+
+#lastly fill out the message field 
+try: 
+    msg_field = browser.find_element_by_xpath("//div[@role='textbox']") 
+    msg_field.send_keys(complete_msg)
+except:
+    print("The id name was not found!")
+
+# press the send button 
+try: 
+    send_button = browser.find_element_by_xpath("//button[@title='Send this email']") 
+    send_button.click()
+except:
+    print("The id name was not found!")
+
+print( 'Successfully Completed.')
